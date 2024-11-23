@@ -12,12 +12,12 @@ class NearestNeighborIndex:
     points every time.
     """
 
-    def __init__(self, points):
+    def __init__(self, points, grid_size=20):
         """
         takes an array of 2d tuples as input points to be indexed.
         """
         self.points = points
-        self.grid_size = 20
+        self.grid_size = grid_size
         self.bounding_square = self.construct_bounding_square(points)
         self.cell_width, self.cell_height = self.get_cell_width()
         self.grid = self.construct_grid_index(points)
