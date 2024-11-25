@@ -159,9 +159,11 @@ class NearestNeighborIndex:
         if cell_min_x <= q_x <= cell_max_x and cell_min_y <= q_y <= cell_max_y:
             return 0
 
+        # Determine the closest x and y coordinates to the query point withing the cell
         closest_x = max(cell_min_x, min(q_x, cell_max_x))
         closest_y = max(cell_min_y, min(q_y, cell_max_y))
 
+        # Get the euclidean distance betweeen closest x,y and the query point.
         return math.sqrt((closest_x - q_x) ** 2 + (closest_y - q_y) ** 2)
 
     def find_nearest(self, query_point: tuple) -> tuple:
@@ -180,6 +182,7 @@ class NearestNeighborIndex:
             (tuple):  A tuple representing the coordinates of the nearest neighbor to the 
             query point.
         """
+        # Calculate shortests distances for each cell to the query point
         distance_map = {}
         for cell in self.grid:
             distance = self.cell_distance_to_point(cell, query_point)
@@ -192,6 +195,8 @@ class NearestNeighborIndex:
 
         result = math.inf
         min_point = None
+        
+        # Determin the nearest neighbor
         for distance in distances:
             if distance > result:
                 break
@@ -205,18 +210,3 @@ class NearestNeighborIndex:
                         min_point = point
 
         return min_point
-
-# Used for debugging
-if __name__ == "__main__":
-
-    def rand_point():
-        return (random.randint(-5, 5), random.randint(-5, 5))
-    
-    actual = []
-    index_points = [rand_point() for _ in range(20)]
-    query_points = [rand_point() for _ in range(1)]
-
-    uut = NearestNeighborIndex(index_points)
-
-    for query_point in query_points:
-        actual.append(uut.find_nearest(query_point))
