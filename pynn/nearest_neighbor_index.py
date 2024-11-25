@@ -3,11 +3,15 @@ from typing import Dict, List, Optional
 
 class NearestNeighborIndex:
     """
-    TODO give me a decent comment
-
     NearestNeighborIndex is intended to index a set of provided points to provide fast nearest
-    neighbor lookup. For now, it is simply a stub that performs an inefficient traversal of all
-    points every time.
+    neighbor lookup. Upon initialization, the spatial grid index organizes points into grid cells 
+    based on their coordinates. The default grid size is 20x20 but can be customized.
+
+    To find the nearest neighbor, the search starts in the cell containing the query point. 
+    If no neighbor is found, it expands to nearby cells by proximity. 
+    Once a candidate neighbor is identified, its Euclidean distance to the query point 
+    is calculated. The search continues only in cells that might contain closer neighbors, 
+    ensuring efficiency.
     """
 
     def __init__(self, points: List[(tuple)], grid_size: Optional[int]=20):
