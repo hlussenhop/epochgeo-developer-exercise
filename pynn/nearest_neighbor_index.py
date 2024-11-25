@@ -1,7 +1,5 @@
 import math
-import random
 from typing import Dict, List, Optional
-
 
 class NearestNeighborIndex:
     """
@@ -124,7 +122,7 @@ class NearestNeighborIndex:
         Returns:
             (tuple): tuple containing coordinates of the bounfing box
         """
-        if not points:
+        if not points or len(points) == 0:
             raise ValueError("The list of points is empty.")
 
         x_min = min(point[0] for point in points)
@@ -195,8 +193,8 @@ class NearestNeighborIndex:
 
         result = math.inf
         min_point = None
-        
-        # Determin the nearest neighbor
+
+        # Determine the nearest neighbor
         for distance in distances:
             if distance > result:
                 break
@@ -205,7 +203,7 @@ class NearestNeighborIndex:
                     deltax = point[0] - query_point[0]
                     deltay = point[1] - query_point[1]
                     dist = math.sqrt(deltax * deltax + deltay * deltay)
-                    if result == None or dist < result:
+                    if result is None or dist < result:
                         result = dist
                         min_point = point
 

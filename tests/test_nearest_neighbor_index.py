@@ -7,22 +7,25 @@ import unittest
 import tests.mock_data as mock
 
 from pynn import NearestNeighborIndex
-from tests.mock_data import BASIC_GRID, BASIC_POINTS
 
-class constructGridIndexTest(unittest.TestCase):
+class ConstructGridIndexTest(unittest.TestCase):
+    """Test the construct_grid_index_function"""
     def test_basic_grid(self):
-        uut = NearestNeighborIndex(BASIC_POINTS, 1)
+        """Test with basic data"""
+        uut = NearestNeighborIndex(mock.BASIC_POINTS, 1)
 
-        grid = uut.construct_grid_index(BASIC_POINTS)
-        self.assertEqual(grid, BASIC_GRID)
+        grid = uut.construct_grid_index(mock.BASIC_POINTS)
+        self.assertEqual(grid, mock.BASIC_GRID)
 
     def test_grid_with_negative_points(self):
+        """Test with negative data"""
         uut = NearestNeighborIndex(mock.NEGATIVE_POINTS, 10)
 
         grid = uut.construct_grid_index(mock.NEGATIVE_POINTS)
         self.assertEqual(grid, mock.NEGATIVE_GRID) 
 
     def test_grid_with_floating_points(self):
+        """Test with floating point data"""
         uut = NearestNeighborIndex(mock.FLOATING_POINTS, 20)
 
         grid = uut.construct_grid_index(mock.FLOATING_POINTS)
@@ -30,7 +33,8 @@ class constructGridIndexTest(unittest.TestCase):
 
 class cellFunctionsTest(unittest.TestCase):
     def test_basic_cell_diimensions(self):
-        uut = NearestNeighborIndex(BASIC_POINTS, 1)
+        """Test with basic data"""
+        uut = NearestNeighborIndex(mock.BASIC_POINTS, 1)
 
         cell_dimensions = uut.get_cell_dimensions()
         self.assertEqual(cell_dimensions, (1,1))
@@ -42,7 +46,8 @@ class cellFunctionsTest(unittest.TestCase):
         self.assertEqual(cell_dimensions, (10.0,10.0))
 
     def test_basic_point_cell(self):
-        uut = NearestNeighborIndex(BASIC_POINTS, 1)
+        """Test with basic data"""
+        uut = NearestNeighborIndex(mock.BASIC_POINTS, 1)
 
         point_assignedd_cell = uut.get_point_cell((1,1))
         self.assertEqual(point_assignedd_cell, (1,1))
@@ -53,23 +58,28 @@ class cellFunctionsTest(unittest.TestCase):
         point_assignedd_cell = uut.get_point_cell((55.0,-33.00))
         self.assertEqual(point_assignedd_cell, (5, -4))
 
-class constructBoundingBoxTest(unittest.TestCase):
+class getBoundingBoxTest(unittest.TestCase):
     def test_basic_bounding_box(self):
         uut = NearestNeighborIndex(mock.BASIC_GRID, 1)
 
-        box = uut.construct_bounding_box(mock.BASIC_GRID)
+        box = uut.get_bounding_box(mock.BASIC_GRID)
         self.assertEqual(box, (0,0,1,1))
 
     def test_floating_points_bounding_box(self):
         uut = NearestNeighborIndex(mock.BASIC_GRID, 1)
 
-        box = uut.construct_bounding_box(mock.FLOATING_POINTS_GRID)
+        box = uut.get_bounding_box(mock.FLOATING_POINTS_GRID)
         self.assertEqual(box, (-10,-10,10,10))
+
+    def test_exception(self):
+        uut = NearestNeighborIndex(mock.BASIC_POINTS, 9)
+        with self.assertRaises(ValueError) as context:
+            uut.get_bounding_box(None)
+            self.assertEqual(str(context.exception), "The list of points is empty.")
 
 class distanceToPointTest(unittest.TestCase):
     def setUp(self):
         self.grid = NearestNeighborIndex(mock.NEGATIVE_POINTS, 10)
-
 
     def test_point_inside_cell(self):
         self.assertEqual(self.grid.cell_distance_to_point((-5, -5), (-5, -5)), 0)
@@ -113,6 +123,59 @@ class NearestNeighborIndexTest(unittest.TestCase):
             uut = NearestNeighborIndex(mock.BASIC_POINTS, -9)
             self.assertEqual(str(context.exception), "grid_size must be a positive integer.")
 
+
+    def test_negtative(self):
+        """
+        Test how find_nearest works with negative numbers.
+        """
+        uut = NearestNeighborIndex(mock.NEGATIVE_POINTS)
+        self.assertEqual(
+            uut.find_nearest((-11,-11)), 
+            uut.find_nearest_slow((-11, -11), mock.NEGATIVE_POINTS)
+        )
+        self.assertEqual(
+            uut.find_nearest((-11,11)), 
+            uut.find_nearest_slow((-11, 11), mock.NEGATIVE_POINTS)
+        )
+        self.assertEqual(
+            uut.find_nearest(( 11,-11)), 
+            uut.find_nearest_slow((11, -11), mock.NEGATIVE_POINTS)
+        )
+
+    def test_floating_point(self):
+        uut = NearestNeighborIndex(mock.FLOATING_POINTS)
+        self.assertEqual(
+            uut.find_nearest((-11.322,-11.322)), 
+            uut.find_nearest_slow((-11.322, -11.322), mock.FLOATING_POINTS)
+        )
+        self.assertEqual(
+            uut.find_nearest((-11.322,11.322)), 
+            uut.find_nearest_slow((-11.322, 11.322), mock.FLOATING_POINTS)
+        )
+        self.assertEqual(
+            uut.find_nearest(( 11.322,-11.322)), 
+            uut.find_nearest_slow((11.322, -11.322), mock.FLOATING_POINTS)
+        )
+        self.assertEqual(
+            uut.find_nearest(( 28.412321,28.412321)), 
+            uut.find_nearest_slow((28.412321, 28.412321), mock.FLOATING_POINTS)
+        )
+
+    def test_skewed_data(self):
+        uut = NearestNeighborIndex(mock.SKEWED_POINTS, 100)
+        self.assertEqual(
+            uut.find_nearest((0,0)),
+            uut.find_nearest_slow((0,0), mock.SKEWED_POINTS)
+        )
+        self.assertEqual(
+            uut.find_nearest((96, 96)),
+            uut.find_nearest_slow((96, 96), mock.SKEWED_POINTS)
+        )
+        self.assertEqual(
+            uut.find_nearest((0, 100)),
+            uut.find_nearest_slow((0, 100), mock.SKEWED_POINTS)
+        )
+
     def test_benchmark(self):
         """
         test_benchmark tests a bunch of values using the slow and fast version of the index
@@ -148,6 +211,7 @@ class NearestNeighborIndexTest(unittest.TestCase):
         print(f"speedup: {(slow_time / new_time):0.2f}x")
 
 if __name__ == "__main__":
+
     unittest.main()
 
     # TODO: Add more test cases to ensure your index works in different scenarios

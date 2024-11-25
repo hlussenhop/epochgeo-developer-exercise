@@ -3,3 +3,5 @@
 
 pynn/_dist_ver.py
 __pycache__
+venv
+.coverage
